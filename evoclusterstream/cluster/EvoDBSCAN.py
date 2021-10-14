@@ -1,82 +1,195 @@
-#From the paper:
-#Evolutionary Clustering and Community Detection Algorithms for Social Media Health Surveillance
-#Heba Elgazzar, Kyle Spurlock, Tanner Bogart
-#2020
+# From the paper:
+# Evolutionary Clustering and 
+# Community Detection Algorithms for Social Media Health Surveillance
+
+# Kyle Spurlock, Tanner Bogart, Heba Elgazzar
+# 2020
+
+# Version 1.2 of an Evolutionary Aadaptation of DBSCAN clustering algorithm.
+
+'''
+Example usage:
+---------------------
+    
+df = pd.read_csv(r"encoded_twitter_dataset.csv")
+X = df.iloc[:1200,[3,4,5]] 
+t_labels = np.unique(X['Time'])
+
+evo1 = EvoDBSCAN(min_samples = 2)
+evo1.callSTATIC(X, beta)
+
+# Evolutionary a = 0
+evo2 = EvoDBSCAN(min_samples = 2)
+noise0 = evo2.callDBSCAN(X, t_labels, alpha = 0.8, beta=1)
+'''
 
 import numpy as np
-#Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). DOI: 0.1038/s41586-020-2649-2. (Publisher link).
 import matplotlib.pyplot as plt
-#Hunter, J. D. (2007). Matplotlib: a 2D graphics environment. Computing in Science & Engineering, 9(3), 90-95. doi:10.1109/mcse.2007.55.
 from sklearn.cluster import DBSCAN
 from sklearn.metrics import pairwise_distances
-#Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., . . . Duchesnay, E. (2011). Scikit-learn: machine learning in python (M. Braun, Ed.). The Journal of Machine Learning Research, 12, 2825-2830. Retrieved November 16, 2020, from jmlr.org.
 
-class EvoDBSCAN:
-    def __init__(self):
-        self.current_time = 0 #The current generation step of the class
-        self.previous_gen = [] #Holds the previous generations distance matrix
-        self.clusters = [] #Number of clusters
-        self.noise = [] #Number of noise points
+class EvoDBSCAN(DBSCAN):
+    """
+        Implementation of Evolutionary DBSCAN with dynamic radius measure.
     
-    def showPlot(self, current_gen, labels, noise, alpha): #Displays the plots of the clustered generation
-        plt.scatter(current_gen[:, 0], current_gen[:, 1], c = labels, cmap = 'tab20') #(x, y, cluster_labels, colour_map for clusters)
-        plt.scatter(current_gen[labels == -1, 0], current_gen[labels == -1 , 1], c = 'black') #Plot noise
-        title = 'EvoDBSCANv1 Generation-{t} Alpha-{a} Noise-{n}'.format(t = self.current_time, a = alpha, n = noise)
-        plt.title(title) #Title of the graph, displays the current generation step
-        plt.savefig('{t}.png'.format(t = title))
-        plt.show() #Show the graph
+        Notes:
+        ---------------------
+            Acts as a wrapper for sci-kit learn DBSCAN class.
+  
+        Vars:
+        ---------------------
+            -eps: Radius measure for finding neighbourhood of core point
+            -min_samples: Minimum number of neighbours to form a core point
+            -clusters_gen: [] stores cluster count per generation
+            -noise_gen: [] stores noise count per time generation
+            -eps_gen: [] stores eps parameter per time generation
+            
+        ---------------------
+        Sci-kit Learn Specific Vars:
+            -metric: Distance metric (manhattan, euclidean, etc.)
+            -metric_params: Sci-kit learn metric parameters
+            -algorithm: Algorithm used to compute pointwise distances
+            -leaf_size: Specific to BallTree or cKDTree algorithm
+            -p: Power of Minkowski metric
+            -n_jobs: Number of parallel jobs
+    """     
     
-    def callDBSCAN(self, X, t_intervals, alpha, beta, show_eps = False): #Member function that performs the evolutionary clustering
-        seen_times = [] #These are the time steps we have currently moved through
+    def __init__(self, min_samples=5,*,
+                 eps=0,
+                 metric='euclidean',
+                 algorithm='auto',
+                 leaf_size=30,
+                 p=None,
+                 n_jobs=None):
         
-        for time in t_intervals: #For each time step in our unique times
-            eps = 0 #Initialize epsilon (radius measure)
+        super().__init__(min_samples=min_samples,
+                         eps=eps,
+                         metric=metric,
+                         algorithm=algorithm,
+                         leaf_size=leaf_size,
+                         p = p,
+                         n_jobs=n_jobs)
+        
+        self.clusters_gen_ = []
+        self.noise_gen_ = []
+        self.eps_gen_ = []
+        
+
+    def showPlot(self, current_gen, time, labels, noise, alpha,
+                 save_plot=None):
+        """Performs plotting of clusters at generation"""
+        # Plot clusters
+        plt.scatter(current_gen[:, 0], current_gen[:, 1],
+                    c = labels, cmap = 'tab20')
+        # Plot noise
+        plt.scatter(current_gen[labels == -1, 0], current_gen[labels == -1, 1],
+                    c = 'black') 
+        
+        # Create graph title with params
+        title = 'DBSCAN Generation-{t} Alpha-{a} Noise-{n}'.format(t= time,
+                                                                   a= alpha,
+                                                                   n= noise)
+        plt.title(title)
+        if not save_plot == None:
+            # Save fig as PNG
+            plt.savefig('{p}{t}.png'.format(p=save_plot, t = title))
+        plt.show() # Show fig
+        
+    
+    def callDBSCAN(self, X, times, alpha, beta=1, show_eps=False,
+                   plot_gens=None, save_plot=None): 
+        """
+            Perform evolutionary DBSCAN clustering.
+        
+            Args:
+            ---------------------
+                -X: Dataframe of tabular data samples
+                -times: List containing times for X samples
+                -alpha: Parameter used to modulate epsilon by snapshot vs. history
+                -beta: Optional scaling param for alpha
+                -show_eps: Verbose for comptued epsilon value
+                -plot: Generations to show as plots
+                
+            Returns:
+            ---------------------
+                -None
+        """        
+        
+        previous_gen = None # Holds the previous generations distance matrix
+        seen_times = [] # Accumulates the seen time steps
+        
+        t_intervals = np.unique(times)
+        
+        if plot_gens == None:
+            # Default generations to plot
+            plot_gens = [int(np.median(t_intervals)/2), # Quarter 1
+                         int(np.median(t_intervals)), # Middle
+                         t_intervals[-1]] # End
+        
+        # Loop through each time step
+        for time in t_intervals:
+            seen_times.append(time) 
+
+            current_gen = X.loc[X['Time'].isin(seen_times)] 
+            current_gen = current_gen.iloc[:,[0,1]].values
             
-            self.current_time = time #Set the class time to this time
-            seen_times.append(time) #Add the current_time to our already viewed times
+            current_snap = X.loc[X['Time'] == time]
             
-            current_gen = X.loc[X['Time'].isin(seen_times)] #Check which values in our data match the current time step
-            current_gen = current_gen.iloc[:,[0,1]].values #Convert the dataframe with the time column into a 2-D array with the coordinate points 
+            # Compute pairwise distances
+            snap_distances = pairwise_distances(current_snap)
             
-            dist_cg = pairwise_distances(current_gen) #Calculate the distance matrix of our coordinate points using pairwise distance
+            # Calculating episolon based on current snapshot or history
+            if time == 0:
+                # No history cost to consider
+                self.eps = (np.median(np.unique(snap_distances))/beta)
+            else:
+                # Determine radius based on history and current snapshot
+                self.eps = ((((1-alpha)*
+                              np.median(np.unique(snap_distances)))/beta)
+                            + (alpha*
+                               np.median(np.unique(previous_gen)))/beta)
             
-            if time == 0: #If we are at the first step, there is no previous generation to consider for our epsilon value
-                if len(current_gen < 2): #If there is only one sample at first gen, median will be 0 since distance will be 0
-                    eps = 1e-5 #Small value to avoid skewing radius
-                else:
-                    eps = ((np.median(np.unique(dist_cg))/beta)) #Find the median distance in the list of unique distances and divide it by 10
-            else: #If we are past the first time step, there is a previous generation we must consider
-                eps = ((1-alpha)*np.median(np.unique(dist_cg)))/beta + (alpha*np.median(np.unique(self.previous_gen)))/beta #Calculate the epsilon using both the current median unique distance, as well as the previous generation's distance
+            # If there is currently no valid distances, make radius very small
+            if self.eps == 0: 
+                self.eps = 1e-5
             
             if show_eps:
-                print('Generation {g} epsilon: {e}'.format(g = self.current_time, e = eps))
+                print('Generation {g} epsilon: {e}'
+                      .format(g = self.current_time, e = self.eps))
             
-            dbscan = DBSCAN(eps, min_samples = 2) #Create the dbscan object
-            labels = dbscan.fit_predict(current_gen) #Find the cluster labels of our current generation
+            # Determine cluster labels and noise
+            labels = self.fit_predict(current_gen) 
             noise = list(labels).count(-1)
             
-            self.clusters.append(len(set(labels)) - (1 if -1 in labels else 0))
-            self.noise.append(noise)
+            # Save noise and cluster count for each generation
+            self.clusters_gen_.append(len(set(labels))
+                                      - (1 if -1 in labels else 0))
+            self.noise_gen_.append(noise)
             
-            self.previous_gen = dist_cg #Set the current generations distance matrix to the previous gen since we have passed it
+            # Saving previous generation as the history
+            previous_gen = pairwise_distances(current_gen) 
             
-            if time in [100, int(np.median(t_intervals)), t_intervals[-1]]: #If the time has either started, is in the middle, or at the end:
-                EvoDBSCAN.showPlot(self, current_gen, labels, noise, alpha) #Take our current gen coordinates and the predicted labels and plot them
+            # Plotting 
+            if time in plot_gens: 
+                self.showPlot(current_gen, time, labels, noise, alpha,
+                              save_plot=save_plot)
+                
+        return None
 
-    def callSTATIC(self, X, beta): #Normal DBSCAN where epsilon is static and points are taken at once
+    def callSTATIC(self, X, beta, save_plot = None):
+        """"Normal DBSCAN implementation"""
         X = X.iloc[:,[0,1]].values
-        dist_cg = pairwise_distances(X)
-        eps = np.median(np.unique(dist_cg))/beta
         
-        dbscan = DBSCAN(eps, min_samples = 2)
-        labels = dbscan.fit_predict(X) #Find the cluster labels of our current generation
-        self.clusters = len(set(labels)) - (1 if -1 in labels else 0)
-        self.noise = list(labels).count(-1)
+        # Compute pairwise distances
+        dist_cg = pairwise_distances(X)
+        
+        # Compute radius measure
+        self.eps = np.median(np.unique(dist_cg))/beta
+    
+        # Determine cluster labels and noise
+        labels = self.fit_predict(X)
+        noise = list(labels).count(-1)
         
         #Plotting
-        plt.scatter(X[:,0], X[:,1], c = labels, cmap = 'tab20') #(x, y, cluster_labels, colour_map for clusters)
-        plt.scatter(X[labels == -1, 0], X[labels == -1 , 1], c = 'black') #Plot noise
-        title = 'Full Static EvoDBSCANv1 Noise-{n}'.format(n = self.noise)
-        plt.title(title)
-        plt.savefig('{t}.png'.format(t = title))
-        plt.show()
+        self.showPlot(X, time=None, labels=labels, noise=noise, alpha=None,
+                      save_plot=save_plot)

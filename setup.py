@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '1.1.1' 
+VERSION = '1.2.5'
 DESCRIPTION = 'Evolutionary DBSCAN and Louvain Method with a Twitter data stream'
 LONG_DESCRIPTION = open("README.md").read()
 INSTALL_REQUIRES = ['numpy>=1.20.3',
@@ -23,7 +23,8 @@ setup(
         install_requires=INSTALL_REQUIRES,
         license='MIT',
         keywords=["Unsupervised machine learning", "evolutionary clustering",
-                  "social networks", "Python", "DBSCAN", "Louvain method"],
+                  "social networks", "Python", "DBSCAN", "Louvain method",
+                  'Twitter'],
         classifiers= [
         'Programming Language :: Python :: 3',
         "License :: OSI Approved :: MIT License",

@@ -31,7 +31,7 @@ Install package:
 
 # Documentation
 
-[Docs](https://evoclusterstream.readthedocs.io/en/latest/)
+[Docs](https://evoclusterstream.readthedocs.io/en/latest/) (Sort of WIP)
 
 # License
 

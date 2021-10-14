@@ -1,3 +1,6 @@
+[![Documentation Status](https://readthedocs.org/projects/evoclusterstream/badge/?version=latest)](https://evoclusterstream.readthedocs.io/en/latest/?badge=latest)
+
+
 # Evolutionary Clustering with Streaming
 
 Contains evolutionary adaptations for the DBSCAN clustering algorithm and the Louvain Method community detection algorithm, and a module for streaming/pre-processing data from Twitter to cluster on.

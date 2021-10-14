@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+import sys
+
+sys.path.insert(0, '..')
 
 from evoclusterstream.cluster import EvoDBSCAN
 from evoclusterstream.cluster import EvoLouvain
@@ -12,7 +15,7 @@ if __name__ == "__main__":
     t_labels = np.unique(X['Time'])
 
     beta = np.sqrt(np.var(X, axis = 0)[0]) # Latitudinal SD, i.e. beta = 6
-    path = ""
+    path = "results/"
     
     ##########################################################################
     # Evolutionary DBSCAN Examples

@@ -1,57 +1,64 @@
-# From the paper:
-# Evolutionary Clustering and 
-# Community Detection Algorithms for Social Media Health Surveillance
+"""
+From the paper:
+Evolutionary Clustering and 
+Community Detection Algorithms for Social Media Health Surveillance
 
-# Kyle Spurlock, Tanner Bogart, Heba Elgazzar
-# 2020
+Kyle Spurlock, Tanner Bogart, Heba Elgazzar
+2020
 
-# Version 1.2 of an Evolutionary Aadaptation of DBSCAN clustering algorithm.
+Version 1.2 of an Evolutionary Aadaptation of DBSCAN clustering algorithm.
 
-'''
-Example usage:
----------------------
+Example
+-------
+    df = pd.read_csv(r"encoded_twitter_dataset.csv")
+    X = df.iloc[:1200,[3,4,5]] 
+    t_labels = np.unique(X['Time'])
     
-df = pd.read_csv(r"encoded_twitter_dataset.csv")
-X = df.iloc[:1200,[3,4,5]] 
-t_labels = np.unique(X['Time'])
-
-evo1 = EvoDBSCAN(min_samples = 2)
-evo1.callSTATIC(X, beta)
-
-# Evolutionary a = 0
-evo2 = EvoDBSCAN(min_samples = 2)
-noise0 = evo2.callDBSCAN(X, t_labels, alpha = 0.8, beta=1)
-'''
+    evo1 = EvoDBSCAN(min_samples = 2)
+    evo1.callSTATIC(X, beta)
+    
+    # Evolutionary a = 0
+    evo2 = EvoDBSCAN(min_samples = 2)
+    noise0 = evo2.callDBSCAN(X, t_labels, alpha = 0.8, beta=1)
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
 from sklearn.metrics import pairwise_distances
 
+
 class EvoDBSCAN(DBSCAN):
-    """
-        Implementation of Evolutionary DBSCAN with dynamic radius measure.
-    
-        Notes:
-        ---------------------
+    """Implementation of Evolutionary DBSCAN with dynamic radius measure.
+        
+        Notes
+        -----
             Acts as a wrapper for sci-kit learn DBSCAN class.
   
-        Vars:
-        ---------------------
-            -eps: Radius measure for finding neighbourhood of core point
-            -min_samples: Minimum number of neighbours to form a core point
-            -clusters_gen: [] stores cluster count per generation
-            -noise_gen: [] stores noise count per time generation
-            -eps_gen: [] stores eps parameter per time generation
-            
-        ---------------------
-        Sci-kit Learn Specific Vars:
-            -metric: Distance metric (manhattan, euclidean, etc.)
-            -metric_params: Sci-kit learn metric parameters
-            -algorithm: Algorithm used to compute pointwise distances
-            -leaf_size: Specific to BallTree or cKDTree algorithm
-            -p: Power of Minkowski metric
-            -n_jobs: Number of parallel jobs
+        Attributes
+        ----------
+        eps : float
+            Radius measure for finding neighbourhood of core point
+        min_samples : int
+            Minimum number of neighbours to form a core point
+        clusters_gen : list
+            Stores cluster count per generation
+        noise_gen : list 
+            Stores noise count per time generation
+        eps_gen : list
+            Stores eps parameter per time generation
+        metric : str
+            Distance metric (manhattan, euclidean, etc.)
+        metric_params : dict 
+            Additional arguments for metric function
+        algorithm : str
+            Algorithm used to compute pointwise distances
+        leaf_size: int
+            Specific to BallTree or cKDTree algorithm
+        p : int
+            Power of Minkowski metric
+        n_jobs : int 
+            Number of parallel jobs
     """     
     
     def __init__(self, min_samples=5,*,
@@ -98,21 +105,28 @@ class EvoDBSCAN(DBSCAN):
     
     def callDBSCAN(self, X, times, alpha, beta=1, show_eps=False,
                    plot_gens=None, save_plot=None): 
-        """
-            Perform evolutionary DBSCAN clustering.
+        """Perform evolutionary DBSCAN clustering.
         
-            Args:
-            ---------------------
-                -X: Dataframe of tabular data samples
-                -times: List containing times for X samples
-                -alpha: Parameter used to modulate epsilon by snapshot vs. history
-                -beta: Optional scaling param for alpha
-                -show_eps: Verbose for comptued epsilon value
-                -plot: Generations to show as plots
+            Parameters
+            ----------
+            X : 'pd.DataFrame'
+                Dataframe of tabular data samples
+            times : list
+                List containing times for X samples
+            alpha : float 
+                Parameter used to modulate epsilon by snapshot vs. history
+            beta : float, optional
+                Optional scaling param for radius
+            show_eps : bool 
+                Verbose for comptued epsilon value
+            plot : list, optional 
+                Generations to show as plots
+            save_plot : str, optional
+                Path to save plots
                 
-            Returns:
-            ---------------------
-                -None
+            Returns
+            -------
+            None
         """        
         
         previous_gen = None # Holds the previous generations distance matrix

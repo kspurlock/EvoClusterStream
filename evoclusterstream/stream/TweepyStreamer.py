@@ -1,23 +1,28 @@
-# From the paper:
-# Evolutionary Clustering and 
-# Community Detection Algorithms for Social Media Health Surveillance
+"""
+From the paper:
+Evolutionary Clustering and 
+Community Detection Algorithms for Social Media Health Surveillance
 
-# Kyle Spurlock, Tanner Bogart, Heba Elgazzar
-# 2020
+Kyle Spurlock, Tanner Bogart, Heba Elgazzar
+2020
 
-# Twitter Streaming Class with Tweepy integration
-# -----------------------------------------------
-# Current configuration collects user geographical location based on tweet
-# keywords.
+Notes
+-----
+    Requires Twitter API keys and tokens
+    Retrieve from here https://developer.twitter.com
 
-'''
-Requires Twitter API keys and tokens
-Retrieve from here https://developer.twitter.com
-'''
+    Current configuration collects user geographical location based on tweet
+    keywords.
+    
+Attributes
+----------
+    data : :obj:stream
+        Data stream of uscities csv file
+    uscities : pd.DataFrame
+        DataFrame of uscities csv file
 
-'''
-Example usage:
----------------------
+Example
+-------
     search_terms = ['tweet1', 'tweet2']
     
     
@@ -31,7 +36,7 @@ Example usage:
                               access_token_secret)
     
     user info = Streamer.stream_tweets(search_terms, n_samples = 100)
-'''
+"""
 
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
@@ -95,13 +100,16 @@ def full_preprocess(df):
 class TweepyStreamer():
     """Class implementation for Twitter Streamer
     
-        Vars:
-        ---------------------
-            -auth: Tweepy OAuthHandler class, authorizes API with keys.
-            -api: Tweepy API class, provides access to RESTful Twitter API.
-            -wait_on_rate_lim: specifies whether to sleep upon reaching max
-                               stream requests.
-            -wait_on_rate_lim_notify: verbose for wait_on_rate_lim
+        Attributes
+        ----------
+        auth : :obj:Tweepy.OAuthHandler
+            Tweepy OAuthHandler class, authorizes API with keys.
+        api : :obj:Tweepy.API
+            Provides access to RESTful Twitter API.
+        wait_on_rate_lim : bool, optional
+            Specifies whether to sleep upon reaching max stream requests.
+        wait_on_rate_lim_notify : bool, optional
+            Verbose for wait_on_rate_lim
     """
     def __init__(self, consumer_key, consumer_secret,
                  access_token, access_secret,*, wait_on_rate_lim=True,
@@ -116,15 +124,19 @@ class TweepyStreamer():
     def stream_tweets(self, search_terms, n_samples, verbose = True):
         """Method for accessing Twitter stream API using Tweepy Cursor
         
-            Args:
-            ---------------------
-                -search_terms: Array of keywords to search for in tweets
-                -n_samples: Number of samples total to collect
-                -verbose: Bool, controls console outputs
+            Parameters
+            ----------
+            search_terms : list
+                Array of keywords to search for in tweets
+            n_samples : int 
+                Number of samples total to collect
+            verbose : bool, optional
+                Controls console outputs
                 
-            Returns:
-            ---------------------
-                -full_list: Dataframe with user info
+            Returns
+            -------
+            pd.DataFrame
+                Contains information from found tweets
         """
         if verbose: print('Starting stream.')
         # List to hold various user characteristics

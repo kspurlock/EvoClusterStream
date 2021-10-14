@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '1.2.5'
+VERSION = '2.0.0'
 DESCRIPTION = 'Evolutionary DBSCAN and Louvain Method with a Twitter data stream'
 LONG_DESCRIPTION = open("README.md").read()
 INSTALL_REQUIRES = ['numpy>=1.20.3',

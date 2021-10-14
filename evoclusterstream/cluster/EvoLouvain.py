@@ -1,23 +1,22 @@
-# From the paper:
-# Evolutionary Clustering and
-# Community Detection Algorithms for Social Media Health Surveillance
+"""
+From the paper:
+Evolutionary Clustering and
+Community Detection Algorithms for Social Media Health Surveillance
 
-# Kyle Spurlock, Tanner Bogart, Heba Elgazzar
-# 2020
+Kyle Spurlock, Tanner Bogart, Heba Elgazzar
+2020
 
-# Version 1.2 of an Evolutionary adaptation of the Louvain Method
+Version 1.2 of an Evolutionary adaptation of the Louvain Method
 
-'''
-Example usage:
----------------------
+Example
+-------
+    df = pd.read_csv(r"encoded_twitter_dataset.csv")
+    X = df.iloc[:200,[3,4,5]]
+    t_labels = np.unique(X['Time'])
     
-df = pd.read_csv(r"encoded_twitter_dataset.csv")
-X = df.iloc[:200,[3,4,5]]
-t_labels = np.unique(X['Time'])
-
-evo8 = EvoLouvain()
-evo8.callLouvain(X, t_labels, alpha = .8, save_plot = "path/")
-'''
+    evo8 = EvoLouvain()
+    evo8.callLouvain(X, t_labels, alpha = .8, save_plot = "path/")
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,13 +27,14 @@ import networkx as nx
 class EvoLouvain():
     """Implementation of Evolutionary Louvain Method
         
-        Notes:
-        ---------------------
+        Notes
+        -----
             Wraps dynamic smoothing around community_louvain by Thomas Aynaud
     
-        Vars:
-        ---------------------
-            -modularities_: [] stores modularities per generation
+        Attributes
+        ----------
+        modularities_ : list
+            stores modularities per generation
     """     
 
     def __init__(self):
@@ -78,18 +78,24 @@ class EvoLouvain():
         """Perform Evolutionary Community Detection through the Louvain
             Method
             
-            Args:
-            ---------------------
-                -X: Dataframe of tabular data samples
-                -times: List containing times for X samples
-                -alpha: Parameter used to modulate epsilon by snapshot vs. history
-                -show_mod: Verbose for comptued modularity values
-                -plot_gens: Generations to show as plots
-                -save_plot: Directory path to save plot as image
+            Parameters
+            ----------
+            X : pd.DataFrame
+                Dataframe of tabular data samples
+            times : list
+                List containing times for X samples
+            alpha : float
+                Parameter used to modulate epsilon by snapshot vs. history
+            show_mod : bool, optional 
+                Verbose for comptued modularity values
+            plot_gens : list, optional
+                Generations to show as plots
+            save_plot : str, optional 
+                Directory path to save plot as image
                 
-            Returns:
-            --------------------
-                -None
+            Returns
+            -------
+            None
         """
         
         previous_gen = None 

@@ -1,6 +1,6 @@
 # Evolutionary Clustering with Streaming
 
-Contains evolutionary adaptations for the DBSCAN clustering algorithm and the Louvain Method community detection algorithm, as well as a module for streaming data from Twitter to cluster on.
+Contains evolutionary adaptations for the DBSCAN clustering algorithm and the Louvain Method community detection algorithm, and a module for streaming/pre-processing data from Twitter to cluster on.
 
 # Installing
 

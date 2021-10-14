@@ -27,11 +27,11 @@ Install package:
 
 # Example Usage
 
-[test](./test/test.py)
+[Test](./test/test.py)
 
 # Documentation
 
-WIP
+[Docs](https://evoclusterstream.readthedocs.io/en/latest/)
 
 # License
 

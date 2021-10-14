@@ -27,7 +27,7 @@ Install package:
 
 # Example Usage
 
-[Test](./test/test.py)
+[Test](./tests/test.py)
 
 # Documentation
 

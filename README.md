@@ -36,9 +36,11 @@ Install package:
 
 [Docs](https://evoclusterstream.readthedocs.io/en/latest/) (Sort of WIP)
 
-# License
+# Licenses
 
 MIT License - [LICENSE](./LICENSE)
+
+CC0 License - [CC0LICENSE](./CC0LICENSE)
 
 # Cite
 Should you benefit from this work we would appreciate a reference to the following paper:
